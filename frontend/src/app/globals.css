@@ -1,0 +1,230 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap');
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: 'JetBrains Mono', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  
+  --color-background: #06090f;
+  --color-panel: #0b1120;
+  --color-border: #1c2d4a;
+  --color-border-highlight: #243650;
+  
+  --color-blue-accent: #00a8ff;
+  --color-teal-accent: #00ddb4;
+  --color-amber-accent: #ffaa00;
+  --color-green-accent: #00d45a;
+  --color-red-accent: #e03535;
+  --color-purple-accent: #a855f7;
+
+  --z-scanlines: 10;
+  --z-vignette: 15;
+  --z-hud: 20;
+  --z-top: 30;
+}
+
+:root {
+  --background: #06090f;
+  --foreground: #ffffff;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'JetBrains Mono', monospace;
+  overflow-x: hidden;
+  letter-spacing: 0.5px;
+}
+
+/* Digital Noise Texture */
+.noise-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.03;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* CRT Screen Effect */
+.crt-screen::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: 12;
+  background-size: 100% 2px, 3px 100%;
+  pointer-events: none;
+}
+
+/* Advanced Glassmorphism */
+.glass-panel {
+  background: rgba(11, 17, 32, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+}
+
+.glass-border-teal {
+  border: 1px solid transparent;
+  background: linear-gradient(#0b1120, #0b1120) padding-box,
+              linear-gradient(135deg, rgba(0, 221, 180, 0.5), transparent, rgba(0, 221, 180, 0.2)) border-box;
+}
+
+/* Scanner Sweep Animation */
+@keyframes scanner-sweep {
+  0% { transform: translateY(-100%); opacity: 0; }
+  50% { opacity: 0.5; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+
+.scanner-sweep {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 20%;
+  background: linear-gradient(to bottom, transparent, #00a8ff, transparent);
+  animation: scanner-sweep 2s linear infinite;
+  pointer-events: none;
+}
+
+/* Text Glows */
+.glow-blue { text-shadow: 0 0 12px rgba(0, 168, 255, 0.5), 0 0 2px rgba(0, 168, 255, 0.8); }
+.glow-teal { text-shadow: 0 0 10px rgba(0, 221, 180, 0.45), 0 0 2px rgba(0, 221, 180, 0.8); }
+.glow-green { text-shadow: 0 0 10px rgba(0, 212, 90, 0.4), 0 0 2px rgba(0, 212, 90, 0.8); }
+.glow-amber { text-shadow: 0 0 10px rgba(255, 170, 0, 0.4), 0 0 2px rgba(255, 170, 0, 0.8); }
+.glow-red { text-shadow: 0 0 10px rgba(224, 53, 53, 0.4), 0 0 2px rgba(224, 53, 53, 0.8); }
+
+/* Glitch Flicker */
+@keyframes flicker {
+  0% { opacity: 0.97; }
+  5% { opacity: 0.9; }
+  10% { opacity: 1; }
+  15% { opacity: 0.85; }
+  25% { opacity: 1; }
+  100% { opacity: 1; }
+}
+.flicker { animation: flicker 3s infinite; }
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #06090f;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #1c2d4a;
+  border-radius: 2px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #00a8ff;
+}
+
+/* Scanline Overlay */
+.scanlines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.07) 2px,
+    rgba(0, 0, 0, 0.07) 4px
+  );
+}
+
+/* HUD Corner Brackets */
+.hud-corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: #00ddb4;
+  border-width: 2px;
+  z-index: 20;
+}
+.hud-corner-tl { top: 12px; left: 12px; border-top-style: solid; border-left-style: solid; }
+.hud-corner-tr { top: 12px; right: 12px; border-top-style: solid; border-right-style: solid; }
+.hud-corner-bl { bottom: 12px; left: 12px; border-bottom-style: solid; border-left-style: solid; }
+.hud-corner-br { bottom: 12px; right: 12px; border-bottom-style: solid; border-right-style: solid; }
+
+/* Glitch Snap Animation */
+@keyframes glitch-snap {
+  0% { transform: translateX(8px); opacity: 0; }
+  20% { transform: translateX(-4px); opacity: 0.5; }
+  40% { transform: translateX(2px); opacity: 0.8; }
+  60% { transform: translateX(-1px); opacity: 1; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+.animate-glitch {
+  animation: glitch-snap 0.4s ease-out forwards;
+}
+
+/* Radar Pulse */
+@keyframes radar-pulse {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+.pulse-ring {
+  position: absolute;
+  border: 1.5px solid #ffcc00;
+  border-radius: 50%;
+  animation: radar-pulse 1.5s ease-out infinite;
+}
+
+/* Skeleton shimmer — used by ui/Skeleton.tsx wherever we want a calm
+   "data on its way" placeholder instead of a spinner. */
+@keyframes skeleton-shimmer {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%);  }
+}
+.animate-skeleton-shimmer {
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Weather overlay — wind drift (subtle horizontal sheen) */
+@keyframes weather-wind-drift {
+  0%   { transform: translateX(-12%); }
+  100% { transform: translateX(12%); }
+}
+.weather-wind {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 35%,
+    rgba(255, 255, 255, 0.10) 50%,
+    rgba(255, 255, 255, 0.04) 65%,
+    transparent 100%
+  );
+  animation: weather-wind-drift 2.2s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* Weather overlay — rain (small downward-drifting droplets) */
+@keyframes weather-rain-fall {
+  from { transform: translateY(0); }
+  to   { transform: translateY(14px); }
+}
+.weather-rain {
+  background-image: radial-gradient(
+    circle at 1px 0,
+    rgba(120, 170, 255, 0.55) 0.6px,
+    transparent 1.4px
+  );
+  background-size: 8px 14px;
+  animation: weather-rain-fall 0.55s linear infinite;
+  will-change: transform;
+}
