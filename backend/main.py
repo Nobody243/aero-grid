@@ -100,11 +100,11 @@ DEFAULT_TARGET_COUNT = 8
 # ── Models ───────────────────────────────────────────────────────────────────
 
 class CityState(BaseModel):
-    buildings: List[List[int]]
-    nfz: List[List[int]]
-    targets: List[List[int]]
+    buildings: List[List[int]] = Field(max_length=500)
+    nfz: List[List[int]] = Field(max_length=500)
+    targets: List[List[int]] = Field(max_length=500)
     depot: List[int]
-    grid_size: int = 40
+    grid_size: int = Field(40, ge=5, le=60)
 
 
 class WeatherRequest(BaseModel):
@@ -143,7 +143,7 @@ class OptimizeResponse(BaseModel):
 
 class FlyRequest(BaseModel):
     city: CityState
-    route: List[int]
+    route: List[int] = Field(max_length=50)
     heuristic: Literal["octile", "manhattan", "euclidean"] = "octile"
 
 
@@ -172,8 +172,8 @@ class QHyperparameters(BaseModel):
 
 class TrainRequest(BaseModel):
     city: CityState
-    start: List[int]
-    goal: List[int]
+    start: List[int] = Field(min_length=2, max_length=2)
+    goal: List[int] = Field(min_length=2, max_length=2)
     hyperparameters: QHyperparameters = QHyperparameters()
     seed: Optional[int] = None
 
@@ -183,16 +183,16 @@ class ReplayRequest(BaseModel):
     # Full 3D Q-table from /learn/train.final_q. max-Q-per-cell projections
     # produce a different policy than what the agent actually learned, so
     # we ship the full action axis for replay correctness.
-    q_full: List[List[List[float]]]
-    start: List[int]
-    goal: List[int]
+    q_full: List[List[List[float]]] = Field(max_length=100)
+    start: List[int] = Field(min_length=2, max_length=2)
+    goal: List[int] = Field(min_length=2, max_length=2)
 
 
 class GeneralizeRequest(BaseModel):
     original_city: CityState
-    q_full: List[List[List[float]]]
-    start: List[int]
-    goal: List[int]
+    q_full: List[List[List[float]]] = Field(max_length=100)
+    start: List[int] = Field(min_length=2, max_length=2)
+    goal: List[int] = Field(min_length=2, max_length=2)
     trained_path: List[List[int]]
     num_perturbations: int = Field(3, ge=0, le=20)
     # When provided, places these exact cells as new buildings (subject to
