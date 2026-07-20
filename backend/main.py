@@ -104,7 +104,7 @@ class CityState(BaseModel):
     nfz: List[List[int]] = Field(max_length=500)
     targets: List[List[int]] = Field(max_length=500)
     depot: List[int]
-    grid_size: int = Field(40, ge=5, le=60)
+    grid_size: int = Field(40, ge=10, le=40)
 
 
 class WeatherRequest(BaseModel):

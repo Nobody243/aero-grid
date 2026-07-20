@@ -114,7 +114,7 @@ export const FlyPanel: React.FC<FlyPanelProps> = ({
           <span className="text-[8px] font-mono text-[#3a4f6b] tracking-[2px] uppercase">complete</span>
         </div>
         <div className="grid grid-cols-8 gap-1.5">
-          {Array.from({ length: totalTargets }).map((_, i) => {
+          {Array.from({ length: Math.min(totalTargets, 20) }).map((_, i) => {
             const isDone = i < completedLegCount;
             const isActive = i === currentLegIdx && !isDone;
             return (
