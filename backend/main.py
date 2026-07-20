@@ -6,11 +6,14 @@ Stateless REST endpoints — city is passed in, not stored on the server.
 from collections import Counter
 from pathlib import Path
 
-from fastapi import FastAPI, Query, HTTPException
+from fastapi import FastAPI, Query, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Tuple
 import random
+import logging
 
 import pandas as pd
 
@@ -18,16 +21,58 @@ from weather_classifier import WeatherClassifier, LABELS as WEATHER_LABELS
 from genetic_algorithm import GeneticAlgorithm, total_distance
 from astar import AStarPathfinder, build_city, GRID_SIZE
 from q_learning import QLearningAgent, greedy_from_q_full, path_length as q_path_length
+from config import settings
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # ── App setup ────────────────────────────────────────────────────────────────
 
-app = FastAPI(title="Aero-Grid API", version="2.0.0")
+docs_url = None if settings.is_production else "/docs"
+redoc_url = None if settings.is_production else "/redoc"
+openapi_url = None if settings.is_production else "/openapi.json"
+
+app = FastAPI(
+    title="Aero-Grid API",
+    version="2.0.0",
+    docs_url=docs_url,
+    redoc_url=redoc_url,
+    openapi_url=openapi_url,
+)
+
+# Initialize slowapi rate limiting and set state.limiter
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+
+# Rate limit exception handler
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Custom validation exception handler
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={"error": "invalid_input", "details": exc.errors()},
+    )
+
+# Custom catch-all exception handler
+@app.exception_handler(Exception)
+async def catch_all_exception_handler(request: Request, exc: Exception):
+    logger.exception("Unhandled exception: %s", str(exc))
+    return JSONResponse(
+        status_code=500,
+        content={"error": "internal_error"},
+    )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=settings.allowed_origins_list,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -180,7 +225,9 @@ def _generate_targets(blocked, grid_size: int, seed: int, count: int = DEFAULT_T
 # ── Endpoints ────────────────────────────────────────────────────────────────
 
 @app.get("/city/random", response_model=CityState)
+@limiter.limit("30/minute")
 def get_random_city(
+    request: Request,
     seed: int = Query(7, description="RNG seed for reproducible cities"),
     difficulty: Literal["easy", "medium", "hard"] = Query("medium"),
 ):
@@ -236,7 +283,8 @@ def post_city_validate(city: CityState):
 
 
 @app.post("/weather", response_model=WeatherResponse)
-def post_weather(req: WeatherRequest):
+@limiter.limit("30/minute")
+def post_weather(req: WeatherRequest, request: Request):
     """Classify weather conditions using Gaussian Naive Bayes (backwards-compatible)."""
     label, probs = classifier.predict(req.wind, req.visibility, req.rainfall)
     return WeatherResponse(
@@ -306,7 +354,8 @@ def get_weather_training_data(n: int = Query(200, ge=1, le=5000)):
 
 
 @app.post("/optimize", response_model=OptimizeResponse)
-def post_optimize(req: OptimizeRequest):
+@limiter.limit("10/minute")
+def post_optimize(req: OptimizeRequest, request: Request):
     """Run Genetic Algorithm to optimize delivery route over the provided city."""
     targets_tuples = [tuple(t) for t in req.city.targets]
     depot_tuple = tuple(req.city.depot)
@@ -343,7 +392,8 @@ def post_optimize(req: OptimizeRequest):
 
 
 @app.post("/fly", response_model=FlyResponse)
-def post_fly(req: FlyRequest):
+@limiter.limit("10/minute")
+def post_fly(req: FlyRequest, request: Request):
     """Run A* pathfinding for each leg of the delivery route over the provided city."""
     buildings_set = {tuple(b) for b in req.city.buildings}
     nfz_set = {tuple(n) for n in req.city.nfz}
@@ -380,7 +430,8 @@ def post_fly(req: FlyRequest):
 
 
 @app.post("/learn/train")
-def post_learn_train(req: TrainRequest):
+@limiter.limit("10/minute")
+def post_learn_train(req: TrainRequest, request: Request):
     """Train a tabular Q-Learning agent for one leg (start -> goal) on the
     given city. Returns full episode history, Q-table snapshots, the
     final greedy path, and A*'s solution to the same problem so the
@@ -418,7 +469,8 @@ def post_learn_train(req: TrainRequest):
 
 
 @app.post("/learn/replay")
-def post_learn_replay(req: ReplayRequest):
+@limiter.limit("10/minute")
+def post_learn_replay(req: ReplayRequest, request: Request):
     """Greedy walk of the trained policy on the given city. Used both for
     'show me the agent flying the leg' and for the head-to-head map."""
     buildings = {tuple(b) for b in req.city.buildings}
@@ -441,7 +493,8 @@ def post_learn_replay(req: ReplayRequest):
 
 
 @app.post("/learn/generalize")
-def post_learn_generalize(req: GeneralizeRequest):
+@limiter.limit("10/minute")
+def post_learn_generalize(req: GeneralizeRequest, request: Request):
     """Test a trained Q-table on a PERTURBED version of the training city.
     Perturbations are added in cells NOT on the trained path (so the demo
     reliably has a chance of succeeding) but the agent must still steer

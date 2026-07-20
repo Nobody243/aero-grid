@@ -79,7 +79,7 @@ export const NavBar: React.FC = () => {
       {/* Right: Project Info */}
       <div className="flex items-center gap-3">
         <div className="px-[10px] py-[4px] border border-[#243650] rounded-[4px] text-[10px] font-mono font-bold text-[#6b7fa3] tracking-[1px]">
-          CSC-411 · BSIT 6B
+          Aero-Grid
         </div>
       </div>
     </nav>

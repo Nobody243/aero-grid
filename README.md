@@ -4,8 +4,6 @@
 
 Aero-Grid is a full-stack visualization of four classical AI techniques cooperating to plan and execute a multi-stop delivery mission across a 40x40 city grid. A FastAPI backend exposes each algorithm as a stateless endpoint; a Next.js frontend renders every decision step in real time on an interactive canvas and a 3D scene.
 
-Built as a semester project for **CSC-411 Artificial Intelligence**, BSIT 6B, Spring 2026.
-
 ---
 
 ## AI Modules
@@ -24,9 +22,10 @@ Each module is independently visualized: a Bayesian probability radar, a generat
 ## Tech Stack
 
 **Backend**
-- Python 3.12, FastAPI, Uvicorn
+- Python 3.12+ (compatible up to 3.14), FastAPI, Uvicorn
 - scikit-learn, NumPy, pandas, joblib
-- Pydantic v2 for request/response models
+- Pydantic v2 (with `pydantic-settings` for environment configuration)
+- Rate limiting with `slowapi`
 
 **Frontend**
 - Next.js 15 (App Router), React 19, TypeScript
@@ -117,13 +116,15 @@ Open `http://localhost:3000`. The frontend talks to the backend at `http://127.0
 - `/optimize` returns the entire generational history so the frontend can animate convergence frame-by-frame.
 - `/fly` returns explored cells per leg, enabling the visualization to show the search frontier, not just the final path.
 - `/learn/generalize` accepts manually-placed obstacles so the user can probe exactly the cells most likely to break the learned policy.
-- CORS is restricted to `localhost:3000` and `127.0.0.1:3000` during development.
+- CORS origins are dynamically configured via `allowed_origins` and methods are strictly restricted to `["GET", "POST"]`.
+- Rate limiting is implemented with `slowapi` (10/minute for `/optimize`, `/fly`, `/learn/train`, `/learn/replay`, `/learn/generalize`; 30/minute for `/city/random` and `/weather`).
+- Interactive API documentation pages (`/docs`, `/redoc`) and schema JSON (`/openapi.json`) are disabled when the backend runs in `production` mode.
 
 ---
 
-## Course Context
+## Project Context
 
-CSC-411 Artificial Intelligence, BSIT 6B, Spring 2026. This repository is an academic deliverable; it is not intended for production deployment.
+This repository is designed as a drone routing project and visualization system; it is not intended for commercial production deployment.
 
 ---
 

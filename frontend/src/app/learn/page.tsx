@@ -136,7 +136,8 @@ export default function LearnPage() {
         speed: 1,
       });
     } catch (err) {
-      setTrainError((err as Error).message);
+      console.error(err);
+      setTrainError('Something went wrong, please try again');
     } finally {
       setFetchingTrain(false);
     }
@@ -178,7 +179,8 @@ export default function LearnPage() {
           speed: 1,
         });
       } catch (err) {
-        setGeneralizeError((err as Error).message);
+        console.error(err);
+        setGeneralizeError('Something went wrong, please try again');
       } finally {
         setFetchingGeneralize(false);
       }

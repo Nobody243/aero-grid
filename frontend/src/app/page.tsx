@@ -39,9 +39,9 @@ export default function HeroPage() {
         </div>
       </div>
 
-      {/* One honest line at the bottom edge — academic provenance, no fake telemetry. */}
+      {/* One honest line at the bottom edge — no fake telemetry. */}
       <div className="absolute bottom-6 right-10 font-mono text-[9px] text-[#3a4f6b] tracking-[2.5px] uppercase pointer-events-none">
-        BSIT 6B <span className="text-[#1c2d4a]">·</span> CSC-411 Artificial Intelligence <span className="text-[#1c2d4a]">·</span> Spring 2026
+        Autonomous Drone Routing & Delivery
       </div>
     </div>
   );

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import "./globals.css";
 import { NavBar } from "@/components/NavBar";
 import { DecisionLog } from "@/components/DecisionLog";
 import { MobileGate } from "@/components/MobileGate";

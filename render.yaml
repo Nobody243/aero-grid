@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: aero-grid-backend
+    env: python
+    rootDir: backend
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      # NOTE: These environment variables must be configured/updated in the Render dashboard.
+      # Specifically, ALLOWED_ORIGINS needs to be replaced with the real Vercel URL
+      # once the frontend is deployed. Otherwise, the backend will fallback to allowing
+      # only localhost origins and silently block the live frontend via CORS.
+      - key: ALLOWED_ORIGINS
+        value: "https://change-to-your-vercel-url.vercel.app"
