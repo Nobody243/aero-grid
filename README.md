@@ -2,7 +2,12 @@
 
 **Autonomous Drone Routing & Delivery AI**
 
-Aero-Grid is a full-stack visualization of four classical AI techniques cooperating to plan and execute a multi-stop delivery mission across a 40x40 city grid. A FastAPI backend exposes each algorithm as a stateless endpoint; a Next.js frontend renders every decision step in real time on an interactive canvas and a 3D scene.
+Aero-Grid is a full-stack visualization of four classical AI techniques cooperating to plan and execute a multi-stop delivery mission across a 40×40 city grid. A FastAPI backend exposes each algorithm as a stateless endpoint; a Next.js frontend renders every decision step in real time on an interactive canvas.
+
+**Live Demo:** https://aerogrid-simulator-ag24303.vercel.app  
+**API Backend:** https://aero-grid-backend.onrender.com
+
+> ⚠️ The backend runs on Render's free plan. The first request after a period of inactivity may take ~30 seconds while the instance cold-starts.
 
 ---
 
@@ -10,10 +15,10 @@ Aero-Grid is a full-stack visualization of four classical AI techniques cooperat
 
 | Module | Algorithm | Role in the Mission |
 |---|---|---|
-| Weather | Naive Bayes classifier | Pre-flight go / no-go verdict from wind, visibility, and rainfall |
+| Weather | Naive Bayes classifier (+ 2 scikit-learn baselines) | Pre-flight go / no-go verdict from wind, visibility, and rainfall |
 | Optimize | Genetic Algorithm (TSP) | Orders the delivery targets to minimize total tour distance |
 | Fly | A\* search | Per-leg pathfinding around buildings and no-fly zones |
-| Learn | Q-Learning | Trains a tabular policy and demonstrates generalization under perturbation |
+| Learn | Q-Learning | Trains a tabular policy, replays it, and stress-tests generalization under obstacle perturbation |
 
 Each module is independently visualized: a Bayesian probability radar, a generational fitness curve with live chromosome reordering, an A\* explored-set sweep, and a Q-table heatmap with policy arrows.
 
@@ -22,15 +27,17 @@ Each module is independently visualized: a Bayesian probability radar, a generat
 ## Tech Stack
 
 **Backend**
-- Python 3.12+ (compatible up to 3.14), FastAPI, Uvicorn
-- scikit-learn, NumPy, pandas, joblib
-- Pydantic v2 (with `pydantic-settings` for environment configuration)
-- Rate limiting with `slowapi`
+- Python 3.12, FastAPI 0.136, Uvicorn
+- scikit-learn 1.8, NumPy 2.4, pandas 3.0, joblib
+- Pydantic v2 + `pydantic-settings` for environment config
+- `slowapi` for per-endpoint rate limiting
 
 **Frontend**
 - Next.js 15 (App Router), React 19, TypeScript
-- Tailwind CSS v4, Framer Motion
-- Recharts for analytics, React Three Fiber / drei for the 3D hero scene
+- Vanilla CSS + CSS custom properties (no Tailwind in production)
+- Framer Motion for page and component animations
+- Recharts for analytics charts
+- React Three Fiber / drei for the 3D landing scene
 - Zustand for global mission state
 - HTML Canvas for the live grid renderer
 
@@ -41,31 +48,50 @@ Each module is independently visualized: a Bayesian probability radar, a generat
 ```
 aero-grid/
   backend/
-    main.py                  FastAPI app and route handlers
-    weather_classifier.py    Naive Bayes implementation
+    main.py                  FastAPI app, all route handlers, middleware
+    config.py                pydantic-settings: reads ENVIRONMENT, ALLOWED_ORIGINS from env
+    weather_classifier.py    Naive Bayes + 2 scikit-learn baselines (3-model ensemble)
     genetic_algorithm.py     GA with Order Crossover + tournament selection
     astar.py                 A* with octile / manhattan / euclidean heuristics
-    q_learning.py            Tabular Q-Learning agent and replay utilities
+    q_learning.py            Tabular Q-Learning agent and greedy replay utilities
     data_pipeline.py         Generates weather_data.csv from rule-based synthesis
-    models/                  Persisted scikit-learn baselines (joblib)
+    models/                  Persisted scikit-learn models (joblib)
     requirements.txt
+    .env.example             Template for local backend env vars
   frontend/
     src/
-      app/                   Routes: /, /setup, /weather, /optimize, /fly, /learn, /results, /mission, /build
-      components/            CityCanvas, NavBar, DecisionLog, phase panels, UI primitives
-      lib/api.ts             Typed client for every backend endpoint
-      lib/store.ts           Zustand mission store
+      app/                   Routes: /, /build, /weather, /optimize, /fly, /learn, /results, /mission, /setup
+      components/
+        CityCanvas.tsx        40×40 interactive grid renderer (HTML Canvas)
+        NavBar.tsx            Top navigation bar
+        PhaseStepper.tsx      Mission phase progress indicator
+        DecisionLog.tsx       Live log of AI decisions
+        MissionStatusStrip.tsx Summary strip across the bottom
+        ToolPalette.tsx       City editor tool switcher
+        ValidationPanel.tsx   City reachability checker UI
+        MobileGate.tsx        Mobile screen-size guard
+        PageTransition.tsx    Framer Motion page wrapper
+        landing/              Hero section components
+        phase-panels/         WeatherPanel, OptimizePanel, FlyPanel
+        learn/                Q-Learning UI components
+        ui/                   Shared primitives (buttons, cards, etc.)
+      lib/
+        api.ts               Typed fetch client for every backend endpoint
+        store.ts             Zustand mission store (single source of truth)
+      hooks/                 Custom React hooks
+    .env.example             Template: NEXT_PUBLIC_API_URL
     package.json
+  render.yaml                Render deployment config (web service, env vars)
+  .gitignore
 ```
 
 ---
 
-## Getting Started
+## Local Development
 
 ### Prerequisites
 - Python 3.12
-- Node.js 20 or newer
-- npm
+- Node.js 20+, npm
 
 ### 1. Backend
 
@@ -75,56 +101,102 @@ py -3.12 -m venv venv312
 venv312\Scripts\activate          # Windows
 # source venv312/bin/activate     # macOS / Linux
 pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
+uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-The API documentation is then available at `http://localhost:8000/docs`.
+Interactive API docs are available at `http://localhost:8000/docs` (disabled in production).
 
 ### 2. Frontend
 
 ```bash
 cd frontend
 npm install
+```
+
+Create a `.env.local` file (gitignored):
+
+```bash
+# frontend/.env.local
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+```
+
+Then run:
+
+```bash
 npm run dev
 ```
 
-Open `http://localhost:3000`. The frontend talks to the backend at `http://127.0.0.1:8000` by default; override with the `NEXT_PUBLIC_API_BASE` environment variable.
+Open `http://localhost:3000`. The frontend reads `NEXT_PUBLIC_API_URL` as the backend base URL.
 
 ---
 
-## API Surface
+## Production Deployment
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| GET  | `/city/random`           | Generate a random valid city (buildings, no-fly zones, targets, depot) |
-| POST | `/city/validate`         | Check connectivity and reachability of all targets |
-| POST | `/weather`               | Naive Bayes classification of flight conditions |
-| POST | `/weather/compare`       | Compare multiple classifiers on the same input |
-| GET  | `/weather/metrics`       | Cached accuracy / precision / recall for each baseline |
-| GET  | `/weather/training-data` | Returns the labeled training scatter for visualization |
-| POST | `/optimize`              | Genetic Algorithm tour optimization with full generational history |
-| POST | `/fly`                   | A\* legs across the chosen route with explored-set metadata |
-| POST | `/learn/train`           | Train a Q-Learning agent and return the full Q-table |
-| POST | `/learn/replay`          | Replay the greedy policy derived from a trained Q-table |
-| POST | `/learn/generalize`      | Stress-test the learned policy against perturbed obstacles |
+### Backend — Render
+
+The backend is deployed via [`render.yaml`](render.yaml) as a Python web service on Render's free plan.
+
+**Required environment variables (set in Render dashboard):**
+
+| Variable | Value |
+|---|---|
+| `ENVIRONMENT` | `production` |
+| `ALLOWED_ORIGINS` | `https://aerogrid-simulator-ag24303.vercel.app` |
+
+In production mode:
+- API docs (`/docs`, `/redoc`, `/openapi.json`) are **disabled**
+- Rate limiting is **enabled** (see limits below)
+
+To add more allowed origins (e.g. preview deploys), set `ALLOWED_ORIGINS` to a comma-separated list:
+```
+https://aerogrid-simulator-ag24303.vercel.app,https://my-preview.vercel.app
+```
+
+### Frontend — Vercel
+
+The frontend is deployed to Vercel under the project `aerogrid-simulator-ag24303`.
+
+**Required environment variable (set in Vercel dashboard for Production & Preview):**
+
+| Variable | Value |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | `https://aero-grid-backend.onrender.com` |
+
+**Manual deploy via CLI** (from `frontend/` directory):
+```bash
+npx vercel --prod
+```
+
+> GitHub auto-deploy can be enabled in the Vercel dashboard under **Settings → Git** to trigger production builds on every push to `main`.
+
+---
+
+## API Reference
+
+| Method | Endpoint | Rate Limit | Purpose |
+|---|---|---|---|
+| GET  | `/city/random`           | 30/min | Generate a random valid city (buildings, NFZs, targets, depot) |
+| POST | `/city/validate`         | —      | Check connectivity and reachability of all targets from depot |
+| POST | `/weather`               | 30/min | Naive Bayes flight condition classification |
+| POST | `/weather/compare`       | —      | Run all 3 classifiers and return majority verdict |
+| GET  | `/weather/metrics`       | —      | Per-model accuracy, confusion matrix, per-class scores |
+| GET  | `/weather/training-data` | —      | Labeled training data sample for scatter plot visualization |
+| POST | `/optimize`              | 10/min | Genetic Algorithm tour optimization with full generational history |
+| POST | `/fly`                   | 10/min | A\* pathfinding per delivery leg with explored-set metadata |
+| POST | `/learn/train`           | 10/min | Train a Q-Learning agent; returns Q-table + episode history |
+| POST | `/learn/replay`          | 10/min | Greedy policy replay from a trained Q-table |
+| POST | `/learn/generalize`      | 10/min | Stress-test policy on a perturbed city (auto or manual obstacles) |
 
 ---
 
 ## Design Notes
 
-- The backend is **stateless** — the city is passed in with every request, so the frontend owns the source of truth.
-- `/optimize` returns the entire generational history so the frontend can animate convergence frame-by-frame.
-- `/fly` returns explored cells per leg, enabling the visualization to show the search frontier, not just the final path.
-- `/learn/generalize` accepts manually-placed obstacles so the user can probe exactly the cells most likely to break the learned policy.
-- CORS origins are dynamically configured via `allowed_origins` and methods are strictly restricted to `["GET", "POST"]`.
-- Rate limiting is implemented with `slowapi` (10/minute for `/optimize`, `/fly`, `/learn/train`, `/learn/replay`, `/learn/generalize`; 30/minute for `/city/random` and `/weather`).
-- Interactive API documentation pages (`/docs`, `/redoc`) and schema JSON (`/openapi.json`) are disabled when the backend runs in `production` mode.
-
----
-
-## Project Context
-
-This repository is designed as a drone routing project and visualization system; it is not intended for commercial production deployment.
+- **Stateless backend** — the city is passed with every request; the frontend (Zustand store) is the single source of truth.
+- `/optimize` returns the full generational history so the frontend can animate convergence frame-by-frame.
+- `/fly` returns explored cells per leg, enabling the search frontier to be visualized, not just the final path.
+- `/learn/generalize` accepts manually-placed obstacle cells so the user can probe exactly the cells most likely to break the learned policy.
+- CORS origins are dynamically configured via the `ALLOWED_ORIGINS` environment variable (comma-split list). The default fallback in development is `http://localhost:3000,http://127.0.0.1:3000`.
+- Rate limiting (`slowapi`) is only active when `ENVIRONMENT=production`.
 
 ---
 
