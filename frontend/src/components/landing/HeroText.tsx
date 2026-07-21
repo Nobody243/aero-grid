@@ -73,7 +73,7 @@ export const HeroText: React.FC = () => (
     {/* CTA */}
     <motion.div variants={item}>
       <Link
-        href="/build"
+        href="/setup"
         className="group inline-flex items-center gap-3 px-6 py-3.5 rounded-[3px] border border-[#00a8ff] text-[#00a8ff] font-mono font-bold tracking-[2px] uppercase text-[11px] hover:border-[#5acaff] hover:text-[#5acaff] transition-colors duration-200"
       >
         Initialize Mission

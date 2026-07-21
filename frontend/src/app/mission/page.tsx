@@ -88,9 +88,9 @@ export default function MissionPage() {
   // because of a direct jump (vs. natural autoplay increment).
   const isScrubbingRef = useRef(false);
 
-  // ── guard: redirect to /build if no city ─────────────────────────────
+  // ── guard: redirect to /setup if no city ─────────────────────────────
   useEffect(() => {
-    if (!cityData) router.replace('/build');
+    if (!cityData) router.replace('/setup');
   }, [cityData, router]);
 
   // ── weather: debounced multi-model classify on every slider change ───
@@ -438,7 +438,7 @@ export default function MissionPage() {
     setWeatherResult(null);
     setOptimizeResult(null);
     setFlyResult(null);
-    router.push('/build');
+    router.push('/setup');
   };
 
   // handleSkipBack / handleSkipForward removed — Scrubber's keyboard handling

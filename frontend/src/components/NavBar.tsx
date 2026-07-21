@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 
 const STEPS = [
-  { name: 'BUILD',   path: '/build'   },
+  { name: 'BUILD',   path: '/setup'   },
   { name: 'MISSION', path: '/mission' },
   { name: 'RESULTS', path: '/results' },
 ];

@@ -60,7 +60,7 @@ aero-grid/
     .env.example             Template for local backend env vars
   frontend/
     src/
-      app/                   Routes: /, /build, /weather, /optimize, /fly, /learn, /results, /mission, /setup
+      app/                   Routes: /, /setup, /weather, /optimize, /fly, /learn, /results, /mission
       components/
         CityCanvas.tsx        40×40 interactive grid renderer (HTML Canvas)
         NavBar.tsx            Top navigation bar
