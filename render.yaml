@@ -14,4 +14,4 @@ services:
       # once the frontend is deployed. Otherwise, the backend will fallback to allowing
       # only localhost origins and silently block the live frontend via CORS.
       - key: ALLOWED_ORIGINS
-        value: "https://change-to-your-vercel-url.vercel.app"
+        value: "https://aerogrid-simulator-ag24303.vercel.app"

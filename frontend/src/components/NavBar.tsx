@@ -36,7 +36,6 @@ export const NavBar: React.FC = () => {
         {STEPS.map((step, idx) => {
           const isDone = idx < currentStepIndex;
           const isActive = idx === currentStepIndex;
-          const isFuture = idx > currentStepIndex;
           
           return (
             <React.Fragment key={step.name}>

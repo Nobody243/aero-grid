@@ -52,7 +52,6 @@ export const OptimizePanel: React.FC<OptimizePanelProps> = ({
             <StatsRow
               currentFrame={currentFrame}
               improvement={result.improvement_pct}
-              naive={result.naive_distance}
             />
             <div className="h-32 mt-3 bg-[#06090f] border border-[#1c2d4a] rounded-[3px] p-2">
               <ResponsiveContainer width="100%" height="100%">
@@ -166,8 +165,7 @@ export const OptimizePanel: React.FC<OptimizePanelProps> = ({
 const StatsRow: React.FC<{
   currentFrame: { generation: number; best_distance: number } | null;
   improvement: number | null;
-  naive: number | null;
-}> = ({ currentFrame, improvement, naive }) => (
+}> = ({ currentFrame, improvement }) => (
   <div className="grid grid-cols-3 gap-4">
     <Stat label="Generation"   value={currentFrame ? currentFrame.generation.toString() : '—'} color="#00a8ff" />
     <Stat label="Best dist"    value={currentFrame ? currentFrame.best_distance.toFixed(1) : '—'} color="#00ddb4" />

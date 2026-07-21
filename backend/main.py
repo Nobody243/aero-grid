@@ -45,7 +45,7 @@ app = FastAPI(
 )
 
 # Initialize slowapi rate limiting and set state.limiter
-limiter = Limiter(key_func=get_remote_address)
+limiter = Limiter(key_func=get_remote_address, enabled=settings.is_production)
 app.state.limiter = limiter
 
 # Rate limit exception handler

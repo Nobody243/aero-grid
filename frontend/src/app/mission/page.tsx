@@ -458,7 +458,6 @@ export default function MissionPage() {
   return (
     <div className="grid grid-rows-[auto_1fr_auto] h-[calc(100vh-52px)] bg-[#06090f] overflow-hidden">
       <PhaseStepper
-        activePhase={activePhase}
         statuses={phaseStatuses}
         onSelect={handlePhaseSelect}
         onEndMission={handleEndMission}

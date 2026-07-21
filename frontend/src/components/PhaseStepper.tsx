@@ -8,7 +8,6 @@ export type Phase = 'weather' | 'optimize' | 'fly';
 export type PhaseStatus = 'pending' | 'active' | 'complete';
 
 interface PhaseStepperProps {
-  activePhase: Phase;
   statuses: Record<Phase, PhaseStatus>;
   onSelect: (phase: Phase) => void;
   onEndMission: () => void;
@@ -21,7 +20,6 @@ const PHASES: { id: Phase; label: string; Icon: typeof CloudRain }[] = [
 ];
 
 export const PhaseStepper: React.FC<PhaseStepperProps> = ({
-  activePhase,
   statuses,
   onSelect,
   onEndMission,
